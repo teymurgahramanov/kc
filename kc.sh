@@ -3,7 +3,7 @@ kc_help () {
   echo ""
   echo "kcg     Generate new ~./kube/config file from context files located under ~./kube/"
   echo "kcgc    Get numbered list of contexts"
-  echo "kcuc    Switch to context by providing its number: kc N"
+  echo "kcuc    Switch to context by providing its number: kcuc N"
 }
 
 kc_context () {
