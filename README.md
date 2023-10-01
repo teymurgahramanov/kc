@@ -9,13 +9,10 @@ kc is a Bash script that simplifies the management of Kubernetes configuration c
 - Always know the current context and differentiate "production" ones by color.
 
 ## Install
-Create file
 ```
-curl -o ~/kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/main/kc.sh
-```
-Source file
-```
-echo "source ~/kc.sh" >> ~/.bashrc
+curl -o ~/kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/main/kc.sh && \
+  echo "source ~/kc.sh" >> ~/.bashrc && \
+  source ~/.bashrc
 ```
 
 ## Usage
