@@ -1,17 +1,19 @@
 #!/bin/bash
 
 kc_help () {
-  echo "Easy management of kubectl config contexts"
-  echo "Usage: kc OPTION"
-  echo "Options:"
-  echo "-g"
-  echo "  Generate new ~./kube/config file from context files located under ~./kube/"
-  echo "-l"
-  echo "  Get numbered list of contexts"
-  echo "-u NUMBER"
-  echo "  Switch to context"
-  echo "-h"
-  echo "  Help"
+  cat << EOF
+kc — Simplifies the management of Kubernetes configuration contexts.
+Usage: kc OPTION
+Options:
+  -g
+    Generate new ~./kube/config file from context files located under ~./kube/
+  -l
+    Get numbered list of contexts
+  -u NUMBER
+    Switch to context
+  -h
+    Help
+EOF
 }
 
 kc_check () {
@@ -23,7 +25,9 @@ kc_check () {
 }
 
 kc_handler() {
-  echo "Error: $1"
+  ERR_COLOR='\033[0;31m'
+  NO_COLOR='\033[0m'
+  echo -e "${ERR_COLOR}Error: $1${NO_COLOR}"
 }
 
 kc_context () {
@@ -72,6 +76,8 @@ kc_generate () {
 kc_main () {
   if [ $# -eq 0 ]; then
     kc_handler "Provide an option"
+    echo ""
+    kc_help
   fi
   while [[ $# -gt 0 ]]; do
     case "$1" in
