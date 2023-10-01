@@ -130,4 +130,8 @@ kc_ps1() {
   fi
 }
 
+<<<<<<< HEAD
 PROMPT_COMMAND=kc_ps1
+=======
+PROMPT_COMMAND=kube_ps1
+>>>>>>> 3e5c47a5b782fdc07b6254840f87917ddfe7f449
