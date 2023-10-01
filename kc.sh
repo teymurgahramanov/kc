@@ -1,8 +1,29 @@
+#!/bin/bash
+
 kc_help () {
-  echo "kc is a set of aliases to ease the management of multiple kube config contexts"
-  echo "    kcg     Generate new ~./kube/config file from context files located under ~./kube/"
-  echo "    kcgc    Get numbered list of contexts"
-  echo "    kcuc    Switch to context by providing its number"
+  echo "Easy management of kubectl config contexts"
+  echo "Usage: kc OPTION"
+  echo "Options:"
+  echo "-g"
+  echo "  Generate new ~./kube/config file from context files located under ~./kube/"
+  echo "-l"
+  echo "  Get numbered list of contexts"
+  echo "-u NUMBER"
+  echo "  Switch to context"
+  echo "-h"
+  echo "  Help"
+}
+
+kc_check () {
+  if command -v kubectl &>/dev/null; then
+    echo "$(kubectl config current-context 2>/dev/null)"
+  else
+    return 1
+  fi
+}
+
+kc_handler() {
+  echo "Error: $1"
 }
 
 kc_context () {
@@ -32,45 +53,81 @@ kc_context () {
       if [ "$INDEX" -ge 0 ] && [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
         kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
       else
-        echo "Invalid index"
+        return 1
       fi
     else
-      echo "Argument is not a valid number"
+      return 1
     fi
   fi
 }
 
 kc_generate () {
-  export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config | tr '\n' ':' ) &&\
+  export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp | tr '\n' ':' ) &&\
   kubectl config view --flatten > ~/.kube/config_tmp && \
   mv ~/.kube/config_tmp ~/.kube/config && \
-  echo -e '\e[93mKubeconfig has been generated from:\e[0m' && \
-  echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort && \
-  echo && \
-  kc_context
+  echo "Kubeconfig has been generated from:" && \
+  echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort
 }
 
-kube_ps1() {
-  local KUBE_CONTEXT
-  if command -v kubectl &>/dev/null; then
-    KUBE_CONTEXT="$(kubectl config current-context 2>/dev/null)"
-    alias k='kubectl'
-    alias kch=kc_help
-    alias kcgc=kc_context
-    alias kcuc=kc_context # Provide context number
-    alias kcg=kc_generate
-  else
-    KUBE_CONTEXT=""
+kc_main () {
+  if [ $# -eq 0 ]; then
+    kc_handler "Provide an option"
   fi
-  if [ -n "$KUBE_CONTEXT" ]; then
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -g)
+        kc_generate
+        echo ""
+        kc_context
+        shift
+        ;;
+      -l)
+        kc_context
+        shift
+        ;;
+      -u)
+        if [[ $# -eq 2 ]]; then
+          kc_context $2
+          if [[ $? -eq 1 ]]; then
+            kc_handler "Invalid context number"
+            echo ""
+            kc_help
+          fi
+          shift 2
+        else
+          kc_handler "-u option requires numeric argument"
+          echo ""
+          kc_help
+          shift
+        fi
+        ;;
+      -h)
+        kc_help
+        shift
+        ;;
+      *)
+        kc_handler "Wrong option"
+        echo ""
+        kc_help
+        shift
+        ;;
+    esac
+  done
+}
+
+kc_ps1() {
+  local KUBE_CONTEXT
+  KUBE_CONTEXT="$(kc_check)"
+  if [[ $? -eq 0 ]]; then
+    alias kc=kc_main
     if [[ $KUBE_CONTEXT =~ prod|production ]]; then
-      PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;31m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;31m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
     else
-      PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;33m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;33m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
     fi
   else
-    PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
   fi
 }
 
-PROMPT_COMMAND=kube_ps1
+PROMPT_COMMAND=kc_ps1
