@@ -5,7 +5,7 @@ kc is a Bash script that simplifies the management of Kubernetes configuration c
 ![](./demo.gif)
 ## Features:
 - Merge multiple Kubernetes configuration context files with just a single command.
-- Easily switch between contexts using indexes instead of full context names.
+- Easily switch between contexts using indexes instead of names.
 - Always know the current context with dynamically updated command prompt (PS1) and differentiate "production" ones by color.
   
 ## Install
