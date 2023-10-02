@@ -1,6 +1,6 @@
 # kc - Easy Kubernetes context manager with smart PS1
 
-kc is a Bash script that simplifies the management of Kubernetes configuration contexts making it convenient for those who work with many different clusters. It provides an easy way to merge and switch between contexts, list available contexts, and enhance your command prompt with context information.
+kc simplifies the management of Kubernetes configuration contexts making it convenient for those who work with many different clusters. It provides an easy way to merge and switch between contexts, list available contexts, and enhance your command prompt with context information.
 
 ![](./demo.gif)
 ## Features:
