@@ -11,6 +11,10 @@ Options:
     Get numbered list of contexts
   -u NUMBER
     Switch to context
+  -d NUMBER
+    Delete context
+  -r NUMBER STRING
+    Rename context
   -h
     Help
 EOF
@@ -50,12 +54,21 @@ kc_context () {
     done
   fi
 
-  if [ $# -eq 1 ]; then
-    ARG=$1
-    if [[ "$ARG" =~ ^[0-9]+$ ]]; then
-      INDEX=$((ARG - 1))
+  if [ $# -gt 0 ]; then
+    OPT=$1
+    NUM=$2
+    if [[ "$NUM" =~ ^[0-9]+$ ]]; then
+      INDEX=$((NUM - 1))
       if [ "$INDEX" -ge 0 ] && [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
-        kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+        if [ $OPT == "u" ]; then
+          kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+        elif [ $OPT == "d" ]; then
+          kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+        elif [ $OPT == "r" ]; then
+          kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" $3
+        else
+          return 1
+        fi
       else
         return 1
       fi
@@ -93,7 +106,7 @@ kc_main () {
         ;;
       -u)
         if [[ $# -eq 2 ]]; then
-          kc_context $2
+          kc_context u $2
           if [[ $? -eq 1 ]]; then
             kc_handler "Invalid context number"
             echo ""
@@ -101,7 +114,39 @@ kc_main () {
           fi
           shift 2
         else
-          kc_handler "-u option requires numeric argument"
+          kc_handler "Option requires numeric argument"
+          echo ""
+          kc_help
+          shift
+        fi
+        ;;
+      -d)
+        if [[ $# -eq 2 ]]; then
+          kc_context d $2
+          if [[ $? -eq 1 ]]; then
+            kc_handler "Invalid context number"
+            echo ""
+            kc_help
+          fi
+          shift 2
+        else
+          kc_handler "Option requires numeric argument"
+          echo ""
+          kc_help
+          shift
+        fi
+        ;;
+      -r)
+        if [[ $# -eq 3 ]]; then
+          kc_context r $2 $3
+          if [[ $? -eq 1 ]]; then
+            kc_handler "Invalid arguments"
+            echo ""
+            kc_help
+          fi
+          shift 3
+        else
+          kc_handler "Option requires numeric argument and string"
           echo ""
           kc_help
           shift

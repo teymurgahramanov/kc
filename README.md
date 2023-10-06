@@ -10,7 +10,7 @@ kc simplifies the management of Kubernetes configuration contexts making it conv
   
 ## Install
 ```
-curl -o ~/kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.0.0/kc.sh && \
+curl -o ~/kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.1.0/kc.sh && \
   echo "source ~/kc.sh" >> ~/.bashrc && \
   source ~/.bashrc
 ```
