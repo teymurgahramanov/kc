@@ -3,7 +3,7 @@
 kc_help () {
   cat << EOF
 kc — Simplifies the management of Kubernetes configuration contexts.
-Usage: kc OPTION
+Usage: kc OPTION ARGUMENT
 Options:
   -g
     Generate new ~./kube/config file from context files located under ~./kube/
@@ -15,6 +15,8 @@ Options:
     Delete context
   -r NUMBER STRING
     Rename context
+  -n STRING
+    Set namespace for current context
   -h
     Help
 EOF
@@ -56,9 +58,9 @@ kc_context () {
 
   if [ $# -gt 0 ]; then
     OPT=$1
-    NUM=$2
-    if [[ "$NUM" =~ ^[0-9]+$ ]]; then
-      INDEX=$((NUM - 1))
+    ARG1=$2
+    if [[ "$ARG1" =~ ^[0-9]+$ ]]; then
+      INDEX=$((ARG1 - 1))
       if [ "$INDEX" -ge 0 ] && [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
         if [ $OPT == "u" ]; then
           kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
@@ -72,6 +74,8 @@ kc_context () {
       else
         return 1
       fi
+    elif [ $OPT == "n" ]; then
+      kubectl config set-context --current --namespace=$2
     else
       return 1
     fi
@@ -108,48 +112,48 @@ kc_main () {
         if [[ $# -eq 2 ]]; then
           kc_context u $2
           if [[ $? -eq 1 ]]; then
+            shift 3
             kc_handler "Invalid context number"
             echo ""
             kc_help
           fi
           shift 2
-        else
-          kc_handler "Option requires numeric argument"
-          echo ""
-          kc_help
-          shift
         fi
         ;;
       -d)
         if [[ $# -eq 2 ]]; then
           kc_context d $2
           if [[ $? -eq 1 ]]; then
+            shift 3
             kc_handler "Invalid context number"
             echo ""
             kc_help
           fi
           shift 2
-        else
-          kc_handler "Option requires numeric argument"
-          echo ""
-          kc_help
-          shift
         fi
         ;;
       -r)
         if [[ $# -eq 3 ]]; then
           kc_context r $2 $3
           if [[ $? -eq 1 ]]; then
-            kc_handler "Invalid arguments"
+            shift 3
+            kc_handler "Invalid context number"
             echo ""
             kc_help
           fi
           shift 3
-        else
-          kc_handler "Option requires numeric argument and string"
-          echo ""
-          kc_help
-          shift
+        fi
+        ;;
+      -n)
+        if [[ $# -eq 2 ]]; then
+          kc_context n $2
+          if [[ $? -eq 1 ]]; then
+            shift 3
+            kc_handler "Something went wrong"
+            echo ""
+            kc_help
+          fi
+          shift 2
         fi
         ;;
       -h)
