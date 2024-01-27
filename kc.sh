@@ -15,8 +15,8 @@ Options:
     Delete context
   -r NUMBER STRING
     Rename context
-  -n STRING
-    Set namespace for current context
+  -s --KEY=VALUE ... --KEY=VALUE
+    Set current context's fields. Refer: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config/kubectl_config_set-context/.
   -h
     Help
 EOF
@@ -33,7 +33,7 @@ kc_check () {
 kc_handler() {
   ERR_COLOR='\033[0;31m'
   NO_COLOR='\033[0m'
-  echo -e "${ERR_COLOR}Error: $1${NO_COLOR}"
+  echo -e "${ERR_COLOR}Error: $1. Type kc -h for help.${NO_COLOR}"
 }
 
 kc_context () {
@@ -43,48 +43,47 @@ kc_context () {
   IFS=$'\n' read -rd '' -a KUBE_CONTEXT_NAMES_ARRAY <<< "$KUBE_CONTEXT_NAMES"
   IFS=$'\n' read -rd '' -a KUBE_CONTEXT_FULL_ARRAY <<< "$KUBE_CONTEXT_FULL"
 
-  if [ $# -eq 0 ]; then
-    COUNTER=0
-    for line in "${KUBE_CONTEXT_FULL_ARRAY[@]}"; do
-      if [ $COUNTER == 0 ]; then
-        echo "N $line"
-        ((COUNTER++))
-      else
-        echo "$COUNTER $line"
-        ((COUNTER++))
-      fi
-    done
-  fi
-
-  if [ $# -gt 0 ]; then
-    OPT=$1
-    ARG1=$2
-    if [[ "$ARG1" =~ ^[0-9]+$ ]]; then
-      INDEX=$((ARG1 - 1))
-      if [ "$INDEX" -ge 0 ] && [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
-        if [ $OPT == "u" ]; then
-          kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
-        elif [ $OPT == "d" ]; then
-          kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
-        elif [ $OPT == "r" ]; then
-          kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" $3
-        else
-          return 1
-        fi
-      else
-        return 1
-      fi
-    elif [ $OPT == "n" ]; then
-      kubectl config set-context --current --namespace=$2
-    else
+  if [[ "$2" =~ ^[0-9]+$ ]]; then
+    INDEX=$(($2 - 1))
+    if ![ "$INDEX" -ge 0 ] && ![ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
       return 1
     fi
   fi
+
+  case $1 in
+    u)
+      kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+      ;;
+    d)
+      kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+      ;;
+    r)
+      kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
+      ;;
+    s)
+      kubectl config set-context --current "$@"
+      ;;
+    l)
+      COUNTER=0
+      for line in "${KUBE_CONTEXT_FULL_ARRAY[@]}"; do
+        if [ $COUNTER == 0 ]; then
+          echo "N $line"
+          ((COUNTER++))
+        else
+          echo "$COUNTER $line"
+          ((COUNTER++))
+        fi
+      done
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 kc_generate () {
   export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp | tr '\n' ':' ) &&\
-  kubectl config view --flatten > ~/.kube/config_tmp && \
+  kubectl config view --merge --flatten > ~/.kube/config_tmp && \
   mv ~/.kube/config_tmp ~/.kube/config && \
   echo "Kubeconfig has been generated from:" && \
   echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort
@@ -93,8 +92,6 @@ kc_generate () {
 kc_main () {
   if [ $# -eq 0 ]; then
     kc_handler "Provide an option"
-    echo ""
-    kc_help
   fi
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -102,69 +99,51 @@ kc_main () {
         kc_generate
         echo ""
         kc_context
-        shift
+        shift $#
         ;;
       -l)
-        kc_context
-        shift
+        kc_context l
+        shift $#
         ;;
       -u)
-        if [[ $# -eq 2 ]]; then
-          kc_context u $2
-          if [[ $? -eq 1 ]]; then
-            shift 3
-            kc_handler "Invalid context number"
-            echo ""
-            kc_help
-          fi
-          shift 2
+        kc_context u $2
+        if [[ $? -eq 1 ]]; then
+          shift $#
+          kc_handler "Invalid context number"
         fi
+        shift $#
         ;;
       -d)
-        if [[ $# -eq 2 ]]; then
-          kc_context d $2
-          if [[ $? -eq 1 ]]; then
-            shift 3
-            kc_handler "Invalid context number"
-            echo ""
-            kc_help
-          fi
-          shift 2
+        kc_context d $2
+        if [[ $? -eq 1 ]]; then
+          shift $#
+          kc_handler "Invalid context number"
         fi
+        shift $#
         ;;
       -r)
-        if [[ $# -eq 3 ]]; then
-          kc_context r $2 $3
-          if [[ $? -eq 1 ]]; then
-            shift 3
-            kc_handler "Invalid context number"
-            echo ""
-            kc_help
-          fi
-          shift 3
+        kc_context r $2 $3
+        if [[ $? -eq 1 ]]; then
+          shift $#
+          kc_handler "Invalid context number"
         fi
+        shift $#
         ;;
-      -n)
-        if [[ $# -eq 2 ]]; then
-          kc_context n $2
-          if [[ $? -eq 1 ]]; then
-            shift 3
-            kc_handler "Something went wrong"
-            echo ""
-            kc_help
-          fi
-          shift 2
+      -s)
+        kc_context s $2
+        if [[ $? -eq 1 ]]; then
+          shift $#
+          kc_handler "Something went wrong"
         fi
+        shift $#
         ;;
       -h)
         kc_help
-        shift
+        shift $#
         ;;
       *)
         kc_handler "Wrong option"
-        echo ""
-        kc_help
-        shift
+        shift $#
         ;;
     esac
   done
@@ -175,7 +154,7 @@ kc_ps1() {
   KUBE_CONTEXT="$(kc_check)"
   if [[ $? -eq 0 ]]; then
     alias kc=kc_main
-    if [[ $KUBE_CONTEXT =~ prod|production ]]; then
+    if [[ $KUBE_CONTEXT =~ prod ]]; then
       PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;31m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
     else
       PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;33m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
