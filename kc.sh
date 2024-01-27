@@ -61,7 +61,7 @@ kc_context () {
       kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
       ;;
     s)
-      kubectl config set-context --current "$@"
+      kubectl config current-context "$@"
       ;;
     l)
       COUNTER=0
