@@ -33,7 +33,8 @@ kc_check () {
 kc_handler() {
   ERR_COLOR='\033[0;31m'
   NO_COLOR='\033[0m'
-  echo -e "${ERR_COLOR}Error: $1. Type kc -h for help.${NO_COLOR}"
+  echo -e "${ERR_COLOR}Error: $1 ${NO_COLOR}"
+  echo "Type kc -h for help."
 }
 
 kc_context () {
@@ -45,7 +46,7 @@ kc_context () {
 
   if [[ "$2" =~ ^[0-9]+$ ]]; then
     INDEX=$(($2 - 1))
-    if ![ "$INDEX" -ge 0 ] && ![ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
+    if ! [ "$INDEX" -ge 0 ] && ! [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
       return 1
     fi
   fi
@@ -61,7 +62,7 @@ kc_context () {
       kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
       ;;
     s)
-      kubectl config set-context $(kubectl config current-context) "$@"
+      kubectl config set-context --current "${@:2}"
       ;;
     l)
       COUNTER=0
@@ -91,14 +92,14 @@ kc_generate () {
 
 kc_main () {
   if [ $# -eq 0 ]; then
-    kc_handler "Provide an option"
+    kc_handler "Provide an option."
   fi
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -g)
         kc_generate
         echo ""
-        kc_context
+        kc_context l
         shift $#
         ;;
       -l)
@@ -109,7 +110,6 @@ kc_main () {
         kc_context u $2
         if [[ $? -eq 1 ]]; then
           shift $#
-          kc_handler "Invalid context number"
         fi
         shift $#
         ;;
@@ -117,7 +117,6 @@ kc_main () {
         kc_context d $2
         if [[ $? -eq 1 ]]; then
           shift $#
-          kc_handler "Invalid context number"
         fi
         shift $#
         ;;
@@ -125,15 +124,13 @@ kc_main () {
         kc_context r $2 $3
         if [[ $? -eq 1 ]]; then
           shift $#
-          kc_handler "Invalid context number"
         fi
         shift $#
         ;;
       -s)
-        kc_context s $2
+        kc_context s "${@:2}"
         if [[ $? -eq 1 ]]; then
           shift $#
-          kc_handler "Something went wrong"
         fi
         shift $#
         ;;
@@ -142,7 +139,7 @@ kc_main () {
         shift $#
         ;;
       *)
-        kc_handler "Wrong option"
+        kc_handler "Wrong option."
         shift $#
         ;;
     esac
