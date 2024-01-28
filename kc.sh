@@ -46,12 +46,20 @@ kc_context () {
 
   if [[ "$2" =~ ^[0-9]+$ ]]; then
     INDEX=$(($2 - 1))
-    if ! [ "$INDEX" -ge 0 ] && ! [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
+    if [ "$INDEX" -ge 0 ] && ! [ "$INDEX" -lt "${#KUBE_CONTEXT_NAMES_ARRAY[@]}" ]; then
+      kc_handler "Wrong index."
       return 1
     fi
   fi
 
   case $1 in
+    g)
+      export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp | tr '\n' ':' ) &&\
+      kubectl config view --merge --flatten > ~/.kube/config_tmp && \
+      mv ~/.kube/config_tmp ~/.kube/config && \
+      echo "Kubeconfig has been generated from:" && \
+      echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort
+      ;;
     u)
       kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
       ;;
@@ -76,28 +84,18 @@ kc_context () {
         fi
       done
       ;;
-    *)
-      return 1
-      ;;
   esac
-}
-
-kc_generate () {
-  export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp | tr '\n' ':' ) &&\
-  kubectl config view --merge --flatten > ~/.kube/config_tmp && \
-  mv ~/.kube/config_tmp ~/.kube/config && \
-  echo "Kubeconfig has been generated from:" && \
-  echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort
 }
 
 kc_main () {
   if [ $# -eq 0 ]; then
     kc_handler "Provide an option."
   fi
+
   while [[ $# -gt 0 ]]; do
     case "$1" in
       -g)
-        kc_generate
+        kc_context g
         echo ""
         kc_context l
         shift $#
