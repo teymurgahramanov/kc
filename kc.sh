@@ -108,30 +108,18 @@ kc_main () {
         ;;
       -u)
         kc_context u $2
-        if [[ $? -eq 1 ]]; then
-          shift $#
-        fi
         shift $#
         ;;
       -d)
         kc_context d $2
-        if [[ $? -eq 1 ]]; then
-          shift $#
-        fi
         shift $#
         ;;
       -r)
         kc_context r $2 $3
-        if [[ $? -eq 1 ]]; then
-          shift $#
-        fi
         shift $#
         ;;
       -m)
         kc_context m "${@:2}"
-        if [[ $? -eq 1 ]]; then
-          shift $#
-        fi
         shift $#
         ;;
       -h)
