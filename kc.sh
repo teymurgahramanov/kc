@@ -10,13 +10,13 @@ Options:
   -l
     Get numbered list of contexts
   -u NUMBER
-    Switch to context
+    Use context
   -d NUMBER
     Delete context
   -r NUMBER STRING
     Rename context
-  -s --KEY=VALUE ... --KEY=VALUE
-    Set current context's fields. Refer: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config/kubectl_config_set-context/.
+  -m --KEY=VALUE ... --KEY=VALUE
+    Modify current context's fields. Refer: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config/kubectl_config_set-context/.
   -h
     Help
 EOF
@@ -61,7 +61,7 @@ kc_context () {
     r)
       kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
       ;;
-    s)
+    m)
       kubectl config set-context --current "${@:2}"
       ;;
     l)
@@ -127,8 +127,8 @@ kc_main () {
         fi
         shift $#
         ;;
-      -s)
-        kc_context s "${@:2}"
+      -m)
+        kc_context m "${@:2}"
         if [[ $? -eq 1 ]]; then
           shift $#
         fi
