@@ -2,21 +2,21 @@
 
 kc_help () {
   cat << EOF
-kc — Simplifies the management of Kubernetes configuration contexts.
+kc — Simplifies Kubernetes clusters management.
 Usage: kc OPTION ARGUMENT
 Options:
   -g
-    Generate new ~./kube/config file from context files located under ~./kube/
+    Generate new ~./kube/config file from kubeconfig files located under ~./kube/
   -l
-    Get numbered list of contexts
+    Get list of contexts
   -u NUMBER
     Use context
   -d NUMBER
     Delete context
-  -r NUMBER STRING
-    Rename context
+  -n STRING
+    Set default namespace for the current context
   -h
-    Help
+    Get help
 EOF
 }
 
@@ -79,8 +79,9 @@ kc_context () {
       export KUBECONFIG=$SANITIZED_FILES
       kubectl config view --merge --flatten > ~/.kube/config_tmp && \
       mv ~/.kube/config_tmp ~/.kube/config && \
+      export KUBECONFIG=~/.kube/config
       echo "Kubeconfig has been generated from:" && \
-      echo $CONFIG_FILES | tr ':' '\n' | sed '/^$/d' | sort
+      echo $CONFIG_FILES | tr ' ' '\n' | sed '/^$/d' | sort
 
       rm -rf "$TEMP_DIR"
       ;;
@@ -89,6 +90,11 @@ kc_context () {
       for line in "${KUBE_CONTEXT_FULL_ARRAY[@]}"; do
         if [ $COUNTER == 0 ]; then
           echo "N $line"
+          ((COUNTER++))
+        elif [[ "$line" == *'*'* ]]; then
+          HIGHLIGHT_COLOR='\033[0;36m'
+          NO_COLOR='\033[0m'
+          echo -e "${HIGHLIGHT_COLOR}$COUNTER ${line}${NO_COLOR}"
           ((COUNTER++))
         else
           echo "$COUNTER $line"
@@ -102,14 +108,14 @@ kc_context () {
     d)
       kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
       ;;
-    r)
-      kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
+    n)
+      kubectl config set-context --current --namespace="$2"
       ;;
   esac
 }
 
 kc_sanitize() {
-  FILENAME=$(basename "$1" | sed 's/[^a-zA-Z0-9]/-/g')
+  FILENAME=$(basename "$1" | sed 's/\(.yaml\|.yml\)$//' | sed 's/[^a-zA-Z0-9]/-/g')
 
   if ! command -v sed &>/dev/null; then
     kc_handler "sed command not found."
@@ -158,8 +164,8 @@ kc_main () {
         kc_context d $2
         shift $#
         ;;
-      -r)
-        kc_context r $2 $3
+      -n)
+        kc_context n $2
         shift $#
         ;;
       -h)
@@ -179,13 +185,11 @@ kc_ps1() {
   KUBE_CONTEXT="$(kc_check)"
   if [[ $? -eq 0 ]]; then
     alias kc=kc_main
-    if [[ $KUBE_CONTEXT =~ prod ]]; then
-      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;31m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-    else
-      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;33m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-    fi
-  else
-    PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    local COLOR="\[\033[01;33m\]"  # default: yellow
+    [[ $KUBE_CONTEXT =~ prod ]] && COLOR="\[\033[01;31m\]"  # red if prod
+    CLEAN_PS1="${PS1/(*)/}"
+    CLEAN_PS1="${CLEAN_PS1%" "}"
+    PS1="${CLEAN_PS1}${COLOR}(${KUBE_CONTEXT})\[\033[00m\] "
   fi
 }
 
