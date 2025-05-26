@@ -1,8 +1,11 @@
-# kc - Simplifies Kubernetes clusters management.
+# kc - Simplifies Kubernetes clusters management
 
-__kc__ makes switching between contexts, adding new ones, and modifying them easy and fast.
+__kc__ makes switching between `kubectl` contexts, adding new ones, and modifying them easy and fast.
 
-![](./demo.gif)
+<p align="center">
+    <img src="demo.gif" style="width: 70%; height: auto;" />
+</p>
+
 ## Features
 
 🔢 Easily switch between kubectl contexts using numbers.
@@ -25,7 +28,7 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.3.0
 
 ## Use
 1. Place your kubeconfig files in the `~/.kube/` directory.
-2. Execute `kc -g` to generate a new unified kubeconfig file located at `~/.kube/config`.
+2. Execute `kc -g` to generate a new unified kubeconfig file `~/.kube/config`.
 3. Use `kc -l` to list all available kubeconfig contexts.
 4. To switch contexts, run `kc -u` followed by the context number (for example, `kc -u 5`).
 5. For additional options, run `kc -h` to view the help menu.
