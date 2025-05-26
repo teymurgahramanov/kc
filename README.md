@@ -1,6 +1,6 @@
 # kc - Simplifies Kubernetes clusters management
 
-__kc__ makes switching between `kubectl` contexts, adding new ones, and modifying them easy and fast.
+__kc__ is the CLI tool, written in pure Bash, that makes switching between `kubectl` contexts, adding new ones, and modifying them easy and fast.
 
 <p align="center">
     <img src="demo.gif" style="width: 70%; height: auto;" />
@@ -16,7 +16,7 @@ __kc__ makes switching between `kubectl` contexts, adding new ones, and modifyin
 
 🚨 Helps you to avoid making mistakes by highlighting production clusters in red.
 
-👍 Written in pure bash and installed with a single command.
+👍 Very light and installed with a single command.
   
 ## Install
 ```bash
