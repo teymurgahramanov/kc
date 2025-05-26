@@ -2,23 +2,21 @@
 
 kc_help () {
   cat << EOF
-kc — Simplifies the management of Kubernetes configuration contexts.
+kc — Simplifies Kubernetes clusters management.
 Usage: kc OPTION ARGUMENT
 Options:
   -g
-    Generate new ~./kube/config file from context files located under ~./kube/
+    Generate new ~./kube/config file from kubeconfig files located under ~./kube/
   -l
-    Get numbered list of contexts
+    Get list of contexts
   -u NUMBER
     Use context
   -d NUMBER
     Delete context
-  -r NUMBER STRING
-    Rename context
-  -m --KEY=VALUE ... --KEY=VALUE
-    Modify current context's fields. Refer: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config/kubectl_config_set-context/.
+  -n STRING
+    Set default namespace for the current context
   -h
-    Help
+    Get help
 EOF
 }
 
@@ -54,23 +52,38 @@ kc_context () {
 
   case $1 in
     g)
-      export KUBECONFIG=~/.kube/config:$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp | tr '\n' ':' ) &&\
+
+      TEMP_DIR=~/.kc_tmp
+      mkdir -p $TEMP_DIR 2>/dev/null
+      if [ $? -ne 0 ]; then
+        kc_handler "Failed to create temporary directory."
+        return 1
+      fi
+
+      CONFIG_FILES=$(find ~/.kube -maxdepth 1 -type f ! -name config ! -name config_tmp)
+      SANITIZED_FILES=""
+
+      for file in $CONFIG_FILES; do
+        kubectl --kubeconfig=$file config view > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+          kc_handler "Invalid kubeconfig file: $file"
+          return 1
+        fi
+        cp $file $TEMP_DIR
+        SANITIZED_FILES="$SANITIZED_FILES:$(kc_sanitize $TEMP_DIR/$(basename $file))"
+      done
+
+      SANITIZED_FILES=${SANITIZED_FILES#:}
+
+      # Merge sanitized files
+      export KUBECONFIG=$SANITIZED_FILES
       kubectl config view --merge --flatten > ~/.kube/config_tmp && \
       mv ~/.kube/config_tmp ~/.kube/config && \
+      export KUBECONFIG=~/.kube/config
       echo "Kubeconfig has been generated from:" && \
-      echo $KUBECONFIG | tr ':' '\n' | sed '/^$/d' | sort
-      ;;
-    u)
-      kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
-      ;;
-    d)
-      kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
-      ;;
-    r)
-      kubectl config rename-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}" "$3"
-      ;;
-    m)
-      kubectl config set-context --current "${@:2}"
+      echo $CONFIG_FILES | tr ' ' '\n' | sed '/^$/d' | sort
+
+      rm -rf "$TEMP_DIR"
       ;;
     l)
       COUNTER=0
@@ -78,13 +91,52 @@ kc_context () {
         if [ $COUNTER == 0 ]; then
           echo "N $line"
           ((COUNTER++))
+        elif [[ "$line" == *'*'* ]]; then
+          HIGHLIGHT_COLOR='\033[0;36m'
+          NO_COLOR='\033[0m'
+          echo -e "${HIGHLIGHT_COLOR}$COUNTER ${line}${NO_COLOR}"
+          ((COUNTER++))
         else
           echo "$COUNTER $line"
           ((COUNTER++))
         fi
       done
       ;;
+    u)
+      kubectl config use-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+      ;;
+    d)
+      kubectl config delete-context "${KUBE_CONTEXT_NAMES_ARRAY[$INDEX]}"
+      ;;
+    n)
+      kubectl config set-context --current --namespace="$2"
+      ;;
   esac
+}
+
+kc_sanitize() {
+  FILENAME=$(basename "$1" | sed 's/\(.yaml\|.yml\)$//' | sed 's/[^a-zA-Z0-9]/-/g')
+
+  if ! command -v sed &>/dev/null; then
+    kc_handler "sed command not found."
+    return 1
+  fi
+
+  # Replace top-level fields
+  sed -i "s/^\([[:space:]]*\)name:[[:space:]]*.*/\1name: $FILENAME/" "$1"
+  sed -i "s/^\([[:space:]]*\)current-context:[[:space:]]*.*/\1current-context: $FILENAME/" "$1"
+  # Replace clusters[0].name
+  sed -i "/^clusters:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
+  # Replace users[0].name
+  sed -i "/^users:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
+  # Replace contexts[0].name
+  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
+  # Replace contexts[0].context.cluster
+  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)cluster:[[:space:]]*.*/\1cluster: $FILENAME/" "$1"
+  # Replace contexts[0].context.user
+  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)user:[[:space:]]*.*/\1user: $FILENAME/" "$1"
+
+  echo $1
 }
 
 kc_main () {
@@ -112,12 +164,8 @@ kc_main () {
         kc_context d $2
         shift $#
         ;;
-      -r)
-        kc_context r $2 $3
-        shift $#
-        ;;
-      -m)
-        kc_context m "${@:2}"
+      -n)
+        kc_context n $2
         shift $#
         ;;
       -h)
@@ -137,13 +185,11 @@ kc_ps1() {
   KUBE_CONTEXT="$(kc_check)"
   if [[ $? -eq 0 ]]; then
     alias kc=kc_main
-    if [[ $KUBE_CONTEXT =~ prod ]]; then
-      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;31m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-    else
-      PS1="\[\033[01;32m\]\u@\h\[\033[00m\]\[\033[01;33m\]($KUBE_CONTEXT)\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-    fi
-  else
-    PS1="\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
+    local COLOR="\[\033[01;33m\]"  # default: yellow
+    [[ $KUBE_CONTEXT =~ prod ]] && COLOR="\[\033[01;31m\]"  # red if prod
+    CLEAN_PS1="${PS1/(*)/}"
+    CLEAN_PS1="${CLEAN_PS1%" "}"
+    PS1="${CLEAN_PS1}${COLOR}(${KUBE_CONTEXT})\[\033[00m\] "
   fi
 }
 
