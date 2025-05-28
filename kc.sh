@@ -122,19 +122,12 @@ kc_sanitize() {
     return 1
   fi
 
-  # Replace top-level fields
-  sed -i "s/^\([[:space:]]*\)name:[[:space:]]*.*/\1name: $FILENAME/" "$1"
-  sed -i "s/^\([[:space:]]*\)current-context:[[:space:]]*.*/\1current-context: $FILENAME/" "$1"
-  # Replace clusters[0].name
-  sed -i "/^clusters:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
-  # Replace users[0].name
-  sed -i "/^users:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
-  # Replace contexts[0].name
-  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)- name:[[:space:]]*.*/\1- name: $FILENAME/" "$1"
-  # Replace contexts[0].context.cluster
-  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)cluster:[[:space:]]*.*/\1cluster: $FILENAME/" "$1"
-  # Replace contexts[0].context.user
-  sed -i "/^contexts:/,/^[^[:space:]]/ s/^\([[:space:]]*\)user:[[:space:]]*.*/\1user: $FILENAME/" "$1"
+  sed -i -E '
+    s/^([[:space:]]*(-[[:space:]]*)?name:[[:space:]]+).+/\1'"$FILENAME"'/;
+    s/^([[:space:]]*(-[[:space:]]*)?cluster:[[:space:]]+).+/\1'"$FILENAME"'/;
+    s/^([[:space:]]*(-[[:space:]]*)?user:[[:space:]]+).+/\1'"$FILENAME"'/;
+    s/^([[:space:]]*current-context:[[:space:]]+).+/\1'"$FILENAME"'/;
+  ' "$1"
 
   echo $1
 }
