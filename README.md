@@ -16,7 +16,7 @@ __kc__ is the CLI tool, written in pure Bash, that makes switching between `kube
 
 🚨 Helps you to avoid making mistakes by highlighting production clusters in red.
 
-👍 Very light and installed with a single command.
+👍 Light, without any dependencies, and installed with a single command.
   
 ## Install
 ```bash
