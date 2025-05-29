@@ -1,6 +1,6 @@
 # kc
 
-__kc__ is the `kubectl` contexts manager, written in pure Bash, that makes switching between contexts, adding new ones, and modifying them easy and fast. It's ideal for those managing multiple Kubernetes clusters.
+__kc__ is the `kubectl` contexts manager, written in pure Bash, that makes switching between contexts, adding new ones, and modifying them easy and fast. It's ideal for those managing multiple Kubernetes clusters and relying on the terminal.
 
 <p align="center">
     <img src="demo.gif" style="width: 70%; height: auto;" />
