@@ -5,6 +5,7 @@
 ### Added
 - `kc -n` to set default namespace in current context.
 - Highlighting for current context.
+
 ### Changed
 - Improved `kc -g`. Now, it's enough to place a properly named kubeconfig file under `~/.kube/`.
 - Improved integration with shell prompt. Now, "current kubeconfig context" is just appended to the shell prompt instead of modifying it.
