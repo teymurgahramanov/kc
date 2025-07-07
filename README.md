@@ -10,11 +10,13 @@ __kc__ is the `kubectl` contexts manager, written in pure Bash, that makes switc
 
 🔢 Easily switch between kubectl contexts using numbers.
 
-🧩 Merge multiple kubectl config files into one with just a single command.
+🧩 Add new kubeconfig files with just a single command.
+
+⭕ Easily set the default namespace for context.
 
 ⚠️ Always know which cluster you are in with the dynamic shell prompt.
 
-🚨 Helps you to avoid making mistakes by highlighting production clusters in red.
+🚨 Helps you to avoid making mistakes by highlighting production clusters in __red__.
 
 👍 Light, without any dependencies, and installed with a single command.
   
