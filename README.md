@@ -33,4 +33,5 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.3.0
 2. Execute `kc -g` to generate a new unified kubeconfig file `~/.kube/config`.
 3. Use `kc -l` to list all available kubeconfig contexts.
 4. To switch contexts, run `kc -u` followed by the context number (for example, `kc -u 5`).
+4. To set default namespace for the current context, run `kc -n <namespace>`.
 5. For additional options, run `kc -h` to view the help menu.
