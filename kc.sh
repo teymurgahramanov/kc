@@ -20,6 +20,9 @@ Options:
     Delete context
   -n STRING
     Set default namespace for the current context
+  -s NAME [NAMESPACE]
+    Generate a kubeconfig for a service account (from its token secret) into
+    ~/.kube/, based on the current context. NAMESPACE defaults to "default".
   -v
     Print version
   -h
@@ -51,6 +54,15 @@ kc_sed_inplace() {
   fi
 }
 
+# Base64-decode stdin portably (GNU uses --decode, BSD/macOS uses -D).
+kc_base64_decode() {
+  if printf '' | base64 --decode >/dev/null 2>&1; then
+    base64 --decode
+  else
+    base64 -D
+  fi
+}
+
 # Sanitize context/cluster/user names in a kubeconfig file so that they match
 # the file name. Echoes the file path back on success.
 kc_sanitize() {
@@ -71,7 +83,7 @@ kc_sanitize() {
 }
 
 kc_context () {
-  local action="${1:-}" arg="${2:-}"
+  local action="${1:-}" arg="${2:-}" extra="${3:-}"
 
   case "$action" in
     g)
@@ -111,7 +123,7 @@ EOF
         && mv "$HOME/.kube/config_tmp" "$HOME/.kube/config"; then
         export KUBECONFIG="$HOME/.kube/config"
         echo "Kubeconfig has been generated from:"
-        printf '%s\n' "$config_files" | sed '/^$/d' | sort
+        printf '%s\n' "$config_files" | sed '/^$/d' | sort | sed "s|^$HOME/|~/|"
       else
         kc_handler "Failed to generate kubeconfig."
         rm -f "$HOME/.kube/config_tmp"
@@ -161,6 +173,59 @@ EOF
       fi
       kubectl config set-context --current --namespace="$arg"
       ;;
+    s)
+      local sa_name="$arg" sa_namespace token cluster ca server ctx_name outfile
+      sa_namespace="${extra:-default}"
+
+      if [ -z "$sa_name" ]; then
+        kc_handler "Provide a service account secret name."
+        return 1
+      fi
+
+      token="$(kubectl -n "$sa_namespace" get secret "$sa_name" \
+        -o jsonpath='{.data.token}' 2>/dev/null | kc_base64_decode 2>/dev/null)"
+      if [ -z "$token" ]; then
+        kc_handler "Could not read a token from secret \"$sa_name\" in namespace \"$sa_namespace\"."
+        return 1
+      fi
+
+      cluster="$(kubectl config view --minify -o jsonpath='{.clusters[].name}' 2>/dev/null)"
+      server="$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' 2>/dev/null)"
+      ca="$(kubectl -n "$sa_namespace" get secret "$sa_name" -o jsonpath='{.data.ca\.crt}' 2>/dev/null)"
+      if [ -z "$cluster" ] || [ -z "$server" ]; then
+        kc_handler "Could not determine the current cluster. Select a context first."
+        return 1
+      fi
+
+      ctx_name="${cluster}-${sa_name}-${sa_namespace}"
+      outfile="$HOME/.kube/kubeconfig-${ctx_name}.yaml"
+      mkdir -p "$HOME/.kube" 2>/dev/null
+
+      cat > "$outfile" <<EOF
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    certificate-authority-data: $ca
+    server: $server
+  name: $cluster
+current-context: $ctx_name
+contexts:
+- name: $ctx_name
+  context:
+    cluster: $cluster
+    namespace: $sa_namespace
+    user: $sa_name
+users:
+- name: $sa_name
+  user:
+    token: $token
+EOF
+
+      echo "Generated kubeconfig for service account \"$sa_name\" (namespace \"$sa_namespace\"):"
+      printf '%s\n' "$outfile" | sed "s|^$HOME/|~/|"
+      echo "Run 'kc -g' to merge it into ~/.kube/config."
+      ;;
   esac
 }
 
@@ -185,6 +250,9 @@ kc_main () {
       ;;
     -n)
       kc_context n "${2:-}"
+      ;;
+    -s)
+      kc_context s "${2:-}" "${3:-}"
       ;;
     -v)
       echo "kc v${KC_VERSION}"

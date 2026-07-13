@@ -33,6 +33,18 @@ case "$args" in
   "config set-context --current --namespace="*)
     echo "Context modified."
     ;;
+  *"jsonpath={.data.token}"*)
+    printf 'ZmFrZS10b2tlbg=='   # base64 of "fake-token"
+    ;;
+  *crt*)
+    printf 'ZmFrZS1jYQ=='       # base64 of "fake-ca" (kept encoded)
+    ;;
+  *minify*name*)
+    echo "b-cl"
+    ;;
+  *minify*server*)
+    echo "https://bravo.example.com"
+    ;;
   *)
     exit 0
     ;;
@@ -159,4 +171,34 @@ YAML
   grep -q "name: My-Cluster" "$cfg"
   grep -q "current-context: My-Cluster" "$cfg"
   grep -q "user: My-Cluster" "$cfg"
+}
+
+@test "-s without a service account name errors" {
+  run kc_main -s
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"service account secret name"* ]]
+}
+
+@test "-s generates a service-account kubeconfig into ~/.kube" {
+  HOME="$TMPBIN/home"
+  export HOME
+  mkdir -p "$HOME/.kube"
+  run kc_main -s my-sa dev
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Generated kubeconfig"* ]]
+  cfg="$HOME/.kube/kubeconfig-b-cl-my-sa-dev.yaml"
+  [ -f "$cfg" ]
+  grep -q "token: fake-token" "$cfg"
+  grep -q "namespace: dev" "$cfg"
+  grep -q "name: b-cl" "$cfg"
+  grep -q "server: https://bravo.example.com" "$cfg"
+}
+
+@test "-s defaults the namespace to default" {
+  HOME="$TMPBIN/home"
+  export HOME
+  mkdir -p "$HOME/.kube"
+  run kc_main -s my-sa
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.kube/kubeconfig-b-cl-my-sa-default.yaml" ]
 }

@@ -3,6 +3,8 @@
 ## [1.4.0] - 2026-07-12
 
 ### Added
+- `kc -s NAME [NAMESPACE]` to generate a kubeconfig for a service account from
+  its token secret (merges the former standalone `kubeconfgen.sh`).
 - `kc -v` to print the version.
 - Native `zsh` support via `precmd` prompt hook (in addition to `bash`).
 - MIT `LICENSE`.

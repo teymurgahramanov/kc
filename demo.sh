@@ -11,7 +11,7 @@ set -u
 
 TYPE_SPEED="${TYPE_SPEED:-0.045}"   # delay between typed characters
 STEP_PAUSE="${STEP_PAUSE:-1.1}"     # pause after each command's output
-PROMPT_USER="${PROMPT_USER:-you@laptop}"
+PROMPT_USER="${PROMPT_USER:-you@machine}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
