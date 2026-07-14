@@ -1,6 +1,8 @@
 # kc
 
-Juggling a dozen Kubernetes clusters from the terminal? __kc__ is a tiny, pure-Bash `kubectl` context manager that makes switching, adding, and tweaking contexts effortless. Pick a cluster by number, keep your current context right in your prompt, and never `kubectl config` by hand again.
+Juggling a dozen Kubernetes clusters from the terminal?
+
+**kc** is a tiny, pure-Bash `kubectl` context manager that makes switching, adding, and editing contexts simple. No more `kubectl config` commands.
 
 <p align="center">
     <img src="demo.svg" style="width: 90%; height: auto;" />
@@ -8,11 +10,9 @@ Juggling a dozen Kubernetes clusters from the terminal? __kc__ is a tiny, pure-B
 
 ## Features
 
-🔢 Switch between contexts by number, no more `kubectl config use-context <context-name>`.
+🔢 Switch between contexts with `kc -u <context number>`.
 
 🧩 Merge all your kubeconfig files into one with `kc -g`.
-
-🤖 Generate a kubeconfig for a service account with `kc -s <sa-name>`.
 
 ⭕ Set the default namespace for the current context with `kc -n <namespace>`.
 
@@ -20,7 +20,9 @@ Juggling a dozen Kubernetes clusters from the terminal? __kc__ is a tiny, pure-B
 
 🚨 Avoid costly mistakes: production clusters are automatically highlighted in __red__.
 
-🪶 Single file, dependency-free, and installed with a single command.
+🤖 Generate a kubeconfig for a service account with `kc -s <sa-name>`.
+
+⭐️ Single file and dependency-free.
 
 ## Install
 
