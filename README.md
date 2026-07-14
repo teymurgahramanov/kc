@@ -4,9 +4,7 @@ Juggling a dozen Kubernetes clusters from the terminal?
 
 **kc** is a tiny, pure-Bash `kubectl` context manager that makes switching, adding, and editing contexts simple. No more `kubectl config` commands.
 
-<p align="center">
-    <img src="demo.svg" style="width: 90%; height: auto;" />
-</p>
+
 
 ## Features
 
@@ -18,13 +16,15 @@ Juggling a dozen Kubernetes clusters from the terminal?
 
 ⚠️ Always know which cluster you're in, thanks to the dynamic shell prompt.
 
-🚨 Avoid costly mistakes: production clusters are automatically highlighted in __red__.
+🚨 Avoid costly mistakes: production clusters are automatically highlighted in **red**.
 
 🤖 Generate a kubeconfig for a service account with `kc -s <sa-name>`.
 
 ⭐️ Single file and dependency-free.
 
 ## Install
+
+
 
 ### bash
 
@@ -34,6 +34,8 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0
   echo "source ~/.kc.sh" >> ~/.bashrc && \
   source ~/.bashrc
 ```
+
+
 
 ### zsh
 
@@ -45,6 +47,8 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0
 ```
 
 > On Linux (GNU sed), drop the `''` after `-i` in the zsh command above.
+
+
 
 ## Use
 
@@ -73,4 +77,8 @@ real `~/.kube/config` is never touched. Pace it with `TYPE_SPEED` / `STEP_PAUSE`
 ```bash
 asciinema rec -f asciicast-v2 -c "bash demo.sh" demo.cast
 svg-term --in demo.cast --out demo.svg --window --width 90 --height 22
+
+# Render a GIF for social media
+agg --theme github-dark --cols 100 --rows 24 --font-size 18 demo.cast demo.gif
 ```
+

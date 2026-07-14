@@ -1,3 +1,4 @@
 *.cast
 .kc_tmp/
 .cursor/
+*.gif
