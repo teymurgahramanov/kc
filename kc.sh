@@ -134,12 +134,16 @@ EOF
       rm -rf "$temp_dir"
       ;;
     l)
-      # Number contexts starting at 1 (header row is labeled "N"), and
-      # highlight the current context (marked with "*") in cyan.
       kubectl config get-contexts | awk '
-        NR == 1 { print "N " $0; next }
-        /\*/    { printf "\033[0;36m%d %s\033[0m\n", NR - 1, $0; next }
-                { print (NR - 1) " " $0 }
+        NR == 1 {
+          cl = index($0, "CLUSTER")
+          ns = index($0, "NAMESPACE")
+          print "N " substr($0, 1, cl - 1) substr($0, ns)
+          next
+        }
+        { line = substr($0, 1, cl - 1) substr($0, ns) }
+        /\*/ { printf "\033[0;36m%d %s\033[0m\n", NR - 1, line; next }
+             { print (NR - 1) " " line }
       '
       ;;
     u|d)

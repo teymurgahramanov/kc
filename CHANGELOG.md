@@ -25,6 +25,7 @@
   with a fragile regex on every render (bash and zsh).
 - Internal variables are now scoped with `local` to avoid polluting the shell.
 - Errors are printed to `stderr`.
+- `kc -l` no longer shows the `CLUSTER` and `AUTHINFO` columns.
 
 ## [1.3.0] - 2025-05-26
 
