@@ -1,3 +1,3 @@
 # kc v1.4.0
 
-kc now works with `zsh` and can generate a kubeconfig for a service account, and you don't have to build it by hand.
+kc now supports `zsh` and can generate kubeconfig files for service accounts, so you no longer need to create them manually.
