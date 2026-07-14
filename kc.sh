@@ -21,7 +21,7 @@ Options:
   -n STRING
     Set default namespace for the current context
   -s NAME [NAMESPACE]
-    Generate a kubeconfig for a service account (from its token secret) into
+    Generate a kubeconfig for a service account into
     ~/.kube/, based on the current context. NAMESPACE defaults to "default".
   -v
     Print version

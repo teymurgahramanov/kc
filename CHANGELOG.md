@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0] - 2026-07-12
+## [1.4.0] - 2026-07-15
 
 ### Added
 - `kc -s NAME [NAMESPACE]` to generate a kubeconfig for a service account from

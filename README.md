@@ -1,6 +1,6 @@
 # kc
 
-__kc__ is the `kubectl` contexts manager, written in pure Bash, that makes switching between contexts, adding new ones, and modifying them easy and fast. It's ideal for those managing multiple Kubernetes clusters and relying on the terminal.
+Juggling a dozen Kubernetes clusters from the terminal? __kc__ is a tiny, pure-Bash `kubectl` context manager that makes switching, adding, and tweaking contexts effortless. Pick a cluster by number, keep your current context right in your prompt, and never `kubectl config` by hand again.
 
 <p align="center">
     <img src="demo.svg" style="width: 90%; height: auto;" />
@@ -8,19 +8,19 @@ __kc__ is the `kubectl` contexts manager, written in pure Bash, that makes switc
 
 ## Features
 
-🔢 Easily switch between kubectl contexts using numbers.
+🔢 Switch between contexts by number, no more `kubectl config use-context <context-name>`.
 
-🧩 Add new kubeconfig files with just a single command.
+🧩 Merge all your kubeconfig files into one with `kc -g`.
 
-⭕ Easily set the default namespace for context.
+🤖 Generate a kubeconfig for a service account with `kc -s <sa-name>`.
 
-⚠️ Always know which cluster you are in with the dynamic shell prompt.
+⭕ Set the default namespace for the current context with `kc -n <namespace>`.
 
-🚨 Helps you to avoid making mistakes by highlighting production clusters in __red__.
+⚠️ Always know which cluster you're in, thanks to the dynamic shell prompt.
 
-👍 Light, without any dependencies, and installed with a single command.
+🚨 Avoid costly mistakes: production clusters are automatically highlighted in __red__.
 
-🐚 Works with both __bash__ and __zsh__ (Linux and macOS).
+🪶 Single file, dependency-free, and installed with a single command.
 
 ## Install
 
@@ -46,14 +46,11 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0
 
 ## Use
 
-1. Place your kubeconfig files in the `~/.kube/` directory.
-2. Execute `kc -g` to generate a new unified kubeconfig file `~/.kube/config`.
-3. Use `kc -l` to list all available kubeconfig contexts.
-4. To switch contexts, run `kc -u` followed by the context number (for example, `kc -u 5`).
-5. To delete a context, run `kc -d` followed by the context number.
-6. To set the default namespace for the current context, run `kc -n <namespace>`.
-7. To generate a kubeconfig for a service account from its token secret, run `kc -s <secret-name> [namespace]`. The file is written to `~/.kube/`, ready for `kc -g`.
-8. Run `kc -v` to print the version, or `kc -h` to view the help menu.
+1. Drop your kubeconfig files into `~/.kube/`.
+2. Run `kc -g` to merge them into `~/.kube/config`.
+3. Run `kc -l` to list contexts, then `kc -u <number>` to switch.
+
+Run `kc -h` for the full list of options.
 
 ## Development
 
@@ -66,8 +63,6 @@ shellcheck kc.sh
 # Test (requires bats-core)
 bats test
 ```
-
-### Recording the demo
 
 The demo is reproducible via `demo.sh`, which runs an isolated walkthrough
 (`kc -g` → `kc -l` → `kc -u` → `kc -n`) with throwaway sample clusters, so your
