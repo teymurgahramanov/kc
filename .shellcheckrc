@@ -1,0 +1,3 @@
+# SC2154: variables referenced but not assigned — false positives for zsh-only
+# variables (e.g. precmd_functions, PROMPT) that don't exist in bash.
+disable=SC2154
