@@ -28,7 +28,7 @@ Juggling a dozen Kubernetes clusters from the terminal? __kc__ is a tiny, pure-B
 
 ```bash
 curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0/kc.sh && \
-  sed -i '/source ~\/\.kc\.sh/d; /source ~\/kc\.sh/d' ~/.bashrc && \
+  sed -i '/source ~\/\.kc\.sh/d' ~/.bashrc && \
   echo "source ~/.kc.sh" >> ~/.bashrc && \
   source ~/.bashrc
 ```
@@ -37,7 +37,7 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0
 
 ```bash
 curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0/kc.sh && \
-  sed -i '' '/source ~\/\.kc\.sh/d; /source ~\/kc\.sh/d' ~/.zshrc 2>/dev/null; \
+  sed -i '' '/source ~\/\.kc\.sh/d' ~/.zshrc 2>/dev/null; \
   echo "source ~/.kc.sh" >> ~/.zshrc && \
   source ~/.zshrc
 ```
