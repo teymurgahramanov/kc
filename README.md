@@ -4,7 +4,9 @@ Juggling a dozen Kubernetes clusters from the terminal?
 
 **kc** is a tiny, pure-Bash `kubectl` context manager that makes switching, adding, and editing contexts simple. No more `kubectl config` commands.
 
-
+<p align="center">
+    <img src="demo.svg" style="width: 90%; height: auto;" />
+</p>
 
 ## Features
 
