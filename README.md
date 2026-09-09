@@ -26,31 +26,11 @@ Juggling a dozen Kubernetes clusters from the terminal?
 
 ## Install
 
-
-
-### bash
-
 ```bash
-curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0/kc.sh && \
-  sed -i '/source ~\/\.kc\.sh/d' ~/.bashrc && \
-  echo "source ~/.kc.sh" >> ~/.bashrc && \
-  source ~/.bashrc
+curl -fsSL https://raw.githubusercontent.com/teymurgahramanov/kc/v1.5.0/install.sh | bash
 ```
 
-
-
-### zsh
-
-```bash
-curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0/kc.sh && \
-  sed -i '' '/source ~\/\.kc\.sh/d' ~/.zshrc 2>/dev/null; \
-  echo "source ~/.kc.sh" >> ~/.zshrc && \
-  source ~/.zshrc
-```
-
-> On Linux (GNU sed), drop the `''` after `-i` in the zsh command above.
-
-
+Works for both bash and zsh (detects your shell and handles GNU/BSD sed differences automatically).
 
 ## Use
 
@@ -83,4 +63,3 @@ svg-term --in demo.cast --out demo.svg --window --width 90 --height 22
 # Render a GIF for social media
 agg --theme github-dark --cols 100 --rows 24 --font-size 18 demo.cast demo.gif
 ```
-
