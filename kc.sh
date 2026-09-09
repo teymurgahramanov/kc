@@ -3,7 +3,21 @@
 # This script is meant to be sourced from your shell rc file (bash or zsh).
 # shellcheck shell=bash
 
-KC_VERSION="1.4.0"
+KC_VERSION="1.5.0"
+
+KC_STATE_FILE="$HOME/.kc.env"
+
+# Load persisted state from ~/.kc.env.
+kc_state_load() {
+  [ -f "$KC_STATE_FILE" ] && . "$KC_STATE_FILE"
+  return 0
+}
+kc_state_load
+
+# Persist a state value to ~/.kc.env.
+kc_state_write() {
+  printf 'KC_PROMPT_ENABLED=%s\n' "$1" > "$KC_STATE_FILE"
+}
 
 kc_help () {
   cat << EOF
@@ -14,7 +28,7 @@ Options:
     Generate new ~/.kube/config file from kubeconfig files located under ~/.kube/
   -l
     Get list of contexts
-  -u NUMBER
+  -c NUMBER
     Use context
   -d NUMBER
     Delete context
@@ -23,6 +37,9 @@ Options:
   -s NAME [NAMESPACE]
     Generate a kubeconfig for a service account into
     ~/.kube/, based on the current context. NAMESPACE defaults to "default".
+  -p [0|1]
+    Toggle displaying the current context and namespace in the shell prompt.
+    Without an argument it flips the current state.
   -v
     Print version
   -h
@@ -146,7 +163,7 @@ EOF
              { print (NR - 1) " " line }
       '
       ;;
-    u|d)
+    c|d)
       local names count index name
       if ! [[ "$arg" =~ ^[0-9]+$ ]]; then
         kc_handler "Provide a valid context number."
@@ -164,7 +181,7 @@ EOF
         kc_handler "Wrong index."
         return 1
       fi
-      if [ "$action" = "u" ]; then
+      if [ "$action" = "c" ]; then
         kubectl config use-context "$name"
       else
         kubectl config delete-context "$name"
@@ -246,8 +263,8 @@ kc_main () {
     -l)
       kc_context l
       ;;
-    -u)
-      kc_context u "${2:-}"
+    -c)
+      kc_context c "${2:-}"
       ;;
     -d)
       kc_context d "${2:-}"
@@ -257,6 +274,9 @@ kc_main () {
       ;;
     -s)
       kc_context s "${2:-}" "${3:-}"
+      ;;
+    -p)
+      kc_prompt_toggle "${2:-}"
       ;;
     -v)
       echo "kc v${KC_VERSION}"
@@ -273,23 +293,61 @@ kc_main () {
 
 # Append the current kubectl context to the shell prompt.
 kc_ps1() {
-  local kube_context color reset
-  kube_context="$(kc_check)" || return 0
-  [ -n "$kube_context" ] || return 0
+  local kube_context kube_namespace color reset
+
+  kc_state_load
+
+  if [ "${KC_PROMPT_ENABLED:-1}" = "1" ]; then
+    kube_context="$(kc_check)" || return 0
+    [ -n "$kube_context" ] || return 0
+    kube_namespace="$(kubectl config view --minify -o jsonpath='{..namespace}' 2>/dev/null)"
+    [ -n "$kube_namespace" ] || kube_namespace="default"
+  fi
 
   if [ -n "${ZSH_VERSION:-}" ]; then
     color=$'%{\033[01;33m%}'
     case "$kube_context" in *prod*) color=$'%{\033[01;31m%}';; esac
     reset=$'%{\033[00m%}'
     [ -z "${KC_ORIG_PROMPT+x}" ] && KC_ORIG_PROMPT="$PROMPT"
-    PROMPT="${KC_ORIG_PROMPT}${color}(${kube_context})${reset} "
+    if [ "${KC_PROMPT_ENABLED:-1}" = "1" ]; then
+      PROMPT="${KC_ORIG_PROMPT}${color}(${kube_context}:${kube_namespace})${reset} "
+    else
+      PROMPT="$KC_ORIG_PROMPT"
+    fi
   else
     color='\[\033[01;33m\]'
     case "$kube_context" in *prod*) color='\[\033[01;31m\]';; esac
     reset='\[\033[00m\]'
     [ -z "${KC_ORIG_PS1+x}" ] && KC_ORIG_PS1="$PS1"
-    PS1="${KC_ORIG_PS1}${color}(${kube_context})${reset} "
+    if [ "${KC_PROMPT_ENABLED:-1}" = "1" ]; then
+      PS1="${KC_ORIG_PS1}${color}(${kube_context}:${kube_namespace})${reset} "
+    else
+      PS1="$KC_ORIG_PS1"
+    fi
   fi
+}
+
+# Toggle the prompt info on/off and refresh the prompt immediately.
+kc_prompt_toggle() {
+  case "${1:-}" in
+    1) KC_PROMPT_ENABLED=1 ;;
+    0) KC_PROMPT_ENABLED=0 ;;
+    "")
+      if [ "${KC_PROMPT_ENABLED:-1}" = "1" ]; then
+        KC_PROMPT_ENABLED=0
+      else
+        KC_PROMPT_ENABLED=1
+      fi
+      ;;
+    *)
+      kc_handler "Usage: kc -p [0|1]"
+      return 1
+      ;;
+  esac
+  export KC_PROMPT_ENABLED
+  kc_state_write "$KC_PROMPT_ENABLED"
+  kc_ps1
+  echo "kc prompt info: $KC_PROMPT_ENABLED"
 }
 
 alias kc=kc_main

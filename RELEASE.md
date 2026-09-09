@@ -1,3 +1,8 @@
-# kc v1.4.0
+# kc v1.5.0
 
-kc now supports `zsh` and can generate kubeconfig files for service accounts.
+The prompt now shows the current namespace alongside the context as
+`(context:namespace)`, and you can toggle the prompt info with `kc -p [0|1]`
+— the setting persists via `~/.kc.env` across all open shells.
+
+**BREAKING:** the context-switch option was renamed from `-u` to `-c`
+(`kc -c NUMBER`).

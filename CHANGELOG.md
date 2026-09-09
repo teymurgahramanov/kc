@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.5.0] - 2026-09-09
+
+### Added
+- The prompt now shows the current namespace alongside the context as
+  `(context:namespace)`, defaulting to `default` when unset.
+- `kc -p [0|1]` to toggle the prompt info. Without an argument it flips the
+  current state; the setting persists via `~/.kc.env` and applies across all
+  open shells.
+
+### Changed
+- **BREAKING:** Renamed the context-switch option from `-u` to `-c`
+  (`kc -c NUMBER`). Update any scripts, aliases, or muscle memory that
+  relied on `kc -u`.
+
+### Fixed
+- Sourcing `kc.sh` no longer fails under `set -e` when `~/.kc.env` does not
+  exist yet (e.g. on a fresh install).
+
 ## [1.4.0] - 2026-07-15
 
 ### Added
@@ -12,9 +30,9 @@
 - `demo.sh`, a reproducible, isolated walkthrough for recording the demo (e.g. with asciinema).
 
 ### Fixed
-- Off-by-one bug where `kc -u 0` (and other invalid indexes) silently selected
+- Off-by-one bug where index `0` (and other invalid indexes) silently selected
   the wrong context; indexes are now validated correctly.
-- `kc -u`/`kc -d` now reject missing or non-numeric arguments.
+- Context selection/deletion now reject missing or non-numeric arguments.
 - `kc -g` now works on macOS by using a portable `sed -i` (GNU and BSD).
 - Filenames containing spaces are now handled correctly in `kc -g`.
 - `kc_check` now returns a correct exit status when there is no current context.
