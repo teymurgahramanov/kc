@@ -2,6 +2,13 @@
 
 ## [1.5.0] - 2026-09-09
 
+### Added
+- The prompt now shows the current namespace alongside the context as
+  `(context:namespace)`, defaulting to `default` when unset.
+- `kc -p [0|1]` to toggle the prompt info. Without an argument it flips the
+  current state; the setting persists via `~/.kc.env` and applies across all
+  open shells.
+
 ### Changed
 - **BREAKING:** Renamed the context-switch option from `-u` to `-c`
   (`kc -c NUMBER`). Update any scripts, aliases, or muscle memory that
