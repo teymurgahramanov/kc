@@ -84,9 +84,9 @@ sleep 0.6
 run "ls ~/.kube"
 run "kc -g"
 run "kc -l"
-run "kc -u 1"
+run "kc -c 1"
 run "kc -n backend"
-run "kc -u 2"
+run "kc -c 2"
 run "kc -l"
 demo_prompt
 sleep 1.5

@@ -94,38 +94,38 @@ teardown() {
   [[ "$output" == *"prod-cluster"* ]]
 }
 
-@test "-u with non-numeric argument errors" {
-  run kc_main -u abc
+@test "-c with non-numeric argument errors" {
+  run kc_main -c abc
   [ "$status" -ne 0 ]
   [[ "$output" == *"valid context number"* ]]
 }
 
-@test "-u with missing argument errors" {
-  run kc_main -u
+@test "-c with missing argument errors" {
+  run kc_main -c
   [ "$status" -ne 0 ]
   [[ "$output" == *"valid context number"* ]]
 }
 
-@test "-u 0 is rejected as out of range" {
-  run kc_main -u 0
+@test "-c 0 is rejected as out of range" {
+  run kc_main -c 0
   [ "$status" -ne 0 ]
   [[ "$output" == *"Wrong index"* ]]
 }
 
-@test "-u out-of-range index errors" {
-  run kc_main -u 999
+@test "-c out-of-range index errors" {
+  run kc_main -c 999
   [ "$status" -ne 0 ]
   [[ "$output" == *"Wrong index"* ]]
 }
 
-@test "-u selects the correct context by number" {
-  run kc_main -u 1
+@test "-c selects the correct context by number" {
+  run kc_main -c 1
   [ "$status" -eq 0 ]
   [[ "$output" == *"alpha"* ]]
 }
 
-@test "-u selects the last context by number" {
-  run kc_main -u 3
+@test "-c selects the last context by number" {
+  run kc_main -c 3
   [ "$status" -eq 0 ]
   [[ "$output" == *"prod-cluster"* ]]
 }

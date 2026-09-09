@@ -10,7 +10,7 @@ Juggling a dozen Kubernetes clusters from the terminal?
 
 ## Features
 
-🔢 Switch between contexts with `kc -u <context number>`.
+🔢 Switch between contexts with `kc -c <context number>`.
 
 🧩 Merge all your kubeconfig files into one with `kc -g`.
 
@@ -56,7 +56,7 @@ curl -o ~/.kc.sh -L https://raw.githubusercontent.com/teymurgahramanov/kc/v1.4.0
 
 1. Drop your kubeconfig files into `~/.kube/`.
 2. Run `kc -g` to merge them into `~/.kube/config`.
-3. Run `kc -l` to list contexts, then `kc -u <number>` to switch.
+3. Run `kc -l` to list contexts, then `kc -c <number>` to switch.
 
 Run `kc -h` for the full list of options.
 
@@ -73,7 +73,7 @@ bats test
 ```
 
 The demo is reproducible via `demo.sh`, which runs an isolated walkthrough
-(`kc -g` → `kc -l` → `kc -u` → `kc -n`) with throwaway sample clusters, so your
+(`kc -g` → `kc -l` → `kc -c` → `kc -n`) with throwaway sample clusters, so your
 real `~/.kube/config` is never touched. Pace it with `TYPE_SPEED` / `STEP_PAUSE`.
 
 ```bash

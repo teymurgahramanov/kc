@@ -3,13 +3,14 @@
 # This script is meant to be sourced from your shell rc file (bash or zsh).
 # shellcheck shell=bash
 
-KC_VERSION="1.4.1"
+KC_VERSION="1.5.0"
 
 KC_STATE_FILE="$HOME/.kc.env"
 
 # Load persisted state from ~/.kc.env.
 kc_state_load() {
   [ -f "$KC_STATE_FILE" ] && . "$KC_STATE_FILE"
+  return 0
 }
 kc_state_load
 
@@ -27,7 +28,7 @@ Options:
     Generate new ~/.kube/config file from kubeconfig files located under ~/.kube/
   -l
     Get list of contexts
-  -u NUMBER
+  -c NUMBER
     Use context
   -d NUMBER
     Delete context
@@ -162,7 +163,7 @@ EOF
              { print (NR - 1) " " line }
       '
       ;;
-    u|d)
+    c|d)
       local names count index name
       if ! [[ "$arg" =~ ^[0-9]+$ ]]; then
         kc_handler "Provide a valid context number."
@@ -180,7 +181,7 @@ EOF
         kc_handler "Wrong index."
         return 1
       fi
-      if [ "$action" = "u" ]; then
+      if [ "$action" = "c" ]; then
         kubectl config use-context "$name"
       else
         kubectl config delete-context "$name"
@@ -262,8 +263,8 @@ kc_main () {
     -l)
       kc_context l
       ;;
-    -u)
-      kc_context u "${2:-}"
+    -c)
+      kc_context c "${2:-}"
       ;;
     -d)
       kc_context d "${2:-}"
